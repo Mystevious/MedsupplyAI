@@ -1,3 +1,15 @@
+[project]
+name = "medsupplyai"
+version = "1.0.0"
+description = "Healthcare Supply Chain Intelligence and Decision Support System"
+requires-python = ">=3.10,<3.15"
+dependencies = [
+    "Flask>=3.0,<4.0",
+    "mysql-connector-python>=9.0,<10.0",
+    "scikit-learn>=1.5,<2.0",
+    "python-dotenv>=1.0,<2.0"
+]
+
 [tool.vercel]
 entrypoint = "backend.app:app"
 [tool.vercel.scripts]
