@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 FRONTEND_DIR = BASE_DIR / "frontend"
 
 app = Flask(__name__)
-APP_VERSION = "2.1.2"
+APP_VERSION = "2.1.3"
 
 @app.errorhandler(Exception)
 def api_safe_exception(exc):

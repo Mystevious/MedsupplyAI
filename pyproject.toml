@@ -1,13 +1,14 @@
 [project]
 name = "medsupplyai"
-version = "1.0.0"
+version = "2.1.3"
 description = "Healthcare Supply Chain Intelligence and Decision Support System"
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.10,<3.13"
 dependencies = [
     "Flask>=3.0,<4.0",
     "mysql-connector-python>=9.0,<10.0",
     "scikit-learn>=1.5,<2.0",
-    "python-dotenv>=1.0,<2.0"
+    "python-dotenv>=1.0,<2.0",
+    "gunicorn>=23.0,<24.0"
 ]
 
 [tool.vercel]

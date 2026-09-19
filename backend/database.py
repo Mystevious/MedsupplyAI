@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote, urlparse
 
 import mysql.connector
 from dotenv import load_dotenv
@@ -10,14 +11,47 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
-DB_NAME = os.getenv("MYSQL_DATABASE", "medsupplyai")
+def _env_value(*names: str, default: str | None = None) -> str | None:
+    for name in names:
+        value = os.getenv(name)
+        if value is not None and value.strip() != "":
+            return value.strip()
+    return default
+
+
+def _mysql_url_parts() -> dict[str, Any]:
+    raw = _env_value("MYSQL_URL")
+    if not raw:
+        return {}
+    try:
+        parsed = urlparse(raw)
+        return {
+            "host": parsed.hostname,
+            "port": parsed.port,
+            "user": unquote(parsed.username) if parsed.username else None,
+            "password": unquote(parsed.password) if parsed.password else None,
+            "database": parsed.path.lstrip("/") or None,
+        }
+    except ValueError:
+        return {}
+
+
+_URL = _mysql_url_parts()
+DB_NAME = _env_value("MYSQL_DATABASE", "MYSQLDATABASE", default=_URL.get("database") or "railway")
+_PORT_RAW = _env_value("MYSQL_PORT", "MYSQLPORT") or _URL.get("port") or 3306
+try:
+    DB_PORT = int(_PORT_RAW)
+except (TypeError, ValueError):
+    DB_PORT = 3306
+
 DB_CONFIG = {
-    "host": os.getenv("MYSQL_HOST", "localhost"),
-    "port": int(os.getenv("MYSQL_PORT", "3306")),
-    "user": os.getenv("MYSQL_USER", "root"),
-    "password": os.getenv("MYSQL_PASSWORD", ""),
+    "host": _env_value("MYSQL_HOST", "MYSQLHOST", default=_URL.get("host") or "localhost"),
+    "port": DB_PORT,
+    "user": _env_value("MYSQL_USER", "MYSQLUSER", default=_URL.get("user") or "root"),
+    "password": _env_value("MYSQL_PASSWORD", "MYSQLPASSWORD", default=_URL.get("password") or ""),
     "database": DB_NAME,
     "autocommit": False,
+    "connection_timeout": 15,
 }
 
 
@@ -43,9 +77,14 @@ def create_database() -> None:
     server = get_connection(with_database=False)
     cur = server.cursor()
     cur.execute(
-        f"CREATE DATABASE IF NOT EXISTS `{DB_NAME}` "
-        "CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+        "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME=%s",
+        (DB_NAME,),
     )
+    exists = cur.fetchone() is not None
+    if not exists:
+        cur.execute(
+            f"CREATE DATABASE `{DB_NAME}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+        )
     cur.close()
     server.commit()
     server.close()
