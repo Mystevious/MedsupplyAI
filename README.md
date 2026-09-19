@@ -37,6 +37,18 @@ The demo seed data is explicitly synthetic. Manufacturer, origin, storage requir
 
 The application creates the `medsupplyai` database and the required tables automatically. It also upgrades an existing V1 inventory table without dropping existing data.
 
+## Deploy to Vercel
+
+This repository includes a Vercel Python entry point and route configuration. Vercel runs the Flask app as a serverless function; use a hosted MySQL-compatible database because Vercel's filesystem is ephemeral.
+
+1. Create or import the project in Vercel with this repository as the root directory.
+2. Add these Vercel environment variables for the Production, Preview and Development environments: `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, and `MYSQL_DATABASE`.
+3. Deploy. The frontend and `/api/*` routes are served by the Flask function.
+
+For a first-time database, provision the database/schema with a user that has the required tables or temporarily set `MEDSUPPLYAI_INIT_DB=true` for one deployment. Set `MEDSUPPLYAI_SEED_DEMO=true` as well only when synthetic demo history is wanted. Leave both variables unset or false for normal production deployments.
+
+The local `.env` file is ignored by Git and must not be uploaded as a deployment secret.
+
 ## Real-world data integration path
 
 The schema includes provenance/source fields so verified data can later be imported from public sources such as DailyMed/FDA Structured Product Labeling and applicable Indian regulatory sources. The prototype does not claim that seed records are sourced from those services.
