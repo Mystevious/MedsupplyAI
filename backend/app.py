@@ -10,7 +10,10 @@ from time import monotonic
 from flask import Flask, jsonify, request, send_from_directory
 from sklearn.ensemble import RandomForestRegressor
 
-from database import create_database, get_connection
+try:
+    from .database import create_database, get_connection
+except ImportError:
+    from database import create_database, get_connection
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 FRONTEND_DIR = BASE_DIR / "frontend"
